@@ -1,4 +1,4 @@
-nest
-====
+nestor
+======
 
-Nest is a simple framework to write unix daemon program in Golang. 
+Nestor is a simple framework to write unix daemon program in Golang. 
