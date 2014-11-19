@@ -118,20 +118,14 @@ func (s *Supervisor) Sink() error {
 	return nil
 }
 
-func (s *Supervisor) Start() error {
-	return start(s)
-}
-
-func Handle(h Handler) {
+func Handle(pidfile string, foreground bool, h Handler) SinkServer {
 	DefaultSupervisor.h = h
-}
-
-func HandleFunc(f func()) {
-	DefaultSupervisor.h = HandlerFunc(f)
-}
-
-func Start(pidfile string, foreground bool) error {
 	DefaultSupervisor.PidFile = pidfile
 	DefaultSupervisor.Foreground = foreground
-	return DefaultSupervisor.Start()
+	return DefaultSupervisor
+}
+
+func HandleFunc(pidfile string, foreground bool, f func()) SinkServer {
+	h := HandlerFunc(f)
+	return Handle(pidfile, foreground, h)
 }

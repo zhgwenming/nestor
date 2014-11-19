@@ -298,14 +298,26 @@ func (d *Daemon) HandleFunc(f func()) {
 	d.h = HandlerFunc(f)
 }
 
-type sinker interface {
+type SinkServer interface {
 	Sink() error
 	Serve()
 	WaitSignal()
 }
 
+func DaemonHandle(pidfile string, foreground bool, h Handler) SinkServer {
+	DefaultDaemon.h = h
+	DefaultDaemon.PidFile = pidfile
+	DefaultDaemon.Foreground = foreground
+	return DefaultDaemon
+}
+
+func DaemonHandleFunc(pidfile string, foreground bool, f func()) SinkServer {
+	h := HandlerFunc(f)
+	return DaemonHandle(pidfile, foreground, h)
+}
+
 // a function calls different sink functions
-func start(s sinker) error {
+func Start(s SinkServer) error {
 
 	if err := s.Sink(); err != nil {
 		return err
@@ -317,22 +329,4 @@ func start(s sinker) error {
 	// wait to exit
 	s.WaitSignal()
 	return nil
-}
-
-func (d *Daemon) Start() error {
-	return start(d)
-}
-
-func DaemonHandle(h Handler) {
-	DefaultDaemon.h = h
-}
-
-func DaemonHandleFunc(f func()) {
-	DefaultDaemon.h = HandlerFunc(f)
-}
-
-func DaemonStart(pidfile string, foreground bool) error {
-	DefaultDaemon.PidFile = pidfile
-	DefaultDaemon.Foreground = foreground
-	return DefaultDaemon.Start()
 }
