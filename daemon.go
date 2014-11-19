@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	DAEMON_ENV = "__GO_DAEMON_MODE"
+	ENV_DAEMON = "__GO_DAEMON_MODE"
 )
 
 var (
@@ -232,11 +232,11 @@ func (d *Daemon) Sink() error {
 
 	// parent/child/worker logic
 	// background monitor/worker process, all the magic goes here
-	mode := os.Getenv(DAEMON_ENV)
+	mode := os.Getenv(ENV_DAEMON)
 
 	switch mode {
 	case "":
-		err := os.Setenv(DAEMON_ENV, "child")
+		err := os.Setenv(ENV_DAEMON, "child")
 		if err != nil {
 			fatal(err)
 		}
@@ -244,7 +244,7 @@ func (d *Daemon) Sink() error {
 		d.parent()                           // fork and exit
 		log.Fatal("BUG, parent didn't exit") //should never get here
 	case "child":
-		if err := os.Unsetenv(DAEMON_ENV); err != nil {
+		if err := os.Unsetenv(ENV_DAEMON); err != nil {
 			fatal(err)
 		}
 
