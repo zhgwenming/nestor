@@ -1,5 +1,4 @@
 # Nestor
-========
 
 Nestor is a simple framework to write unix daemon program in Golang. 
 
@@ -10,7 +9,7 @@ Daemon Example
 package main
 ```
 
-Supervised Daemin Example
+Supervised Daemon Example
 
 ```go
 package main
