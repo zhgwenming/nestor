@@ -36,16 +36,17 @@ type Handler interface {
 }
 
 type Daemon struct {
-	PidFile    string
-	LogFile    string
-	Foreground bool
-	Signalc    chan os.Signal
-	Command    exec.Cmd
-	h          Handler
+	PidFile     string
+	LogFile     string
+	Foreground  bool
+	Signalc     chan os.Signal
+	Command     exec.Cmd
+	WaitSeconds time.Duration
+	h           Handler
 }
 
 func NewDaemon() *Daemon {
-	d := &Daemon{}
+	d := &Daemon{WaitSeconds: time.Second}
 	d.Signalc = make(chan os.Signal, 1)
 	return d
 }
@@ -123,6 +124,9 @@ func (d *Daemon) child() {
 }
 
 func (d *Daemon) parent() {
+	signal.Notify(d.Signalc,
+		syscall.SIGCHLD)
+
 	cmd := d.Command
 
 	procAttr := &syscall.SysProcAttr{Setsid: true}
@@ -136,6 +140,15 @@ func (d *Daemon) parent() {
 
 	if err := cmd.Start(); err == nil {
 		fmt.Printf("- Started daemon as pid %d\n", cmd.Process.Pid)
+		select {
+		case <-time.After(d.WaitSeconds):
+		case sig := <-d.Signalc:
+			if sig == syscall.SIGCHLD {
+				if err := cmd.Wait(); err != nil {
+					fmt.Printf("daemon exited with %s", err)
+				}
+			}
+		}
 		os.Exit(0)
 	} else {
 		fmt.Printf("error to run in daemon mode - %s\n", err)
