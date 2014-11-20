@@ -76,7 +76,7 @@ func (s *Supervisor) supervise() {
 			duration := endTime.Sub(startTime)
 			seconds := duration.Seconds()
 
-			if i == 0 && seconds < 0.5 {
+			if i == 0 && seconds < 0.3 {
 				log.Printf("worker exited too fast, exiting")
 				os.Exit(1)
 			}
