@@ -13,13 +13,13 @@ import (
 )
 
 type logFile struct {
-	name   *string
+	path   string
 	file   *os.File
 	offset int64
 }
 
 func (l *logFile) Open() error {
-	file, err := os.OpenFile(*l.name, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	file, err := os.OpenFile(l.path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}

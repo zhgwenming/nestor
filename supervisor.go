@@ -37,7 +37,6 @@ func (s *Supervisor) startWorker() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	startTime := time.Now()
 	if err := cmd.Start(); err == nil {
 		log.Printf("- Started worker as pid %d\n", cmd.Process.Pid)
 	} else {
@@ -62,15 +61,6 @@ func (s *Supervisor) startWorker() {
 		log.Printf("worker[%d] exited with - %s, restarting..\n", cmd.Process.Pid, err)
 	}
 
-	for {
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-		if duration.Seconds() > 5 {
-			break
-		} else {
-			time.Sleep(time.Second)
-		}
-	}
 }
 
 func (s *Supervisor) supervise() {
@@ -78,8 +68,26 @@ func (s *Supervisor) supervise() {
 		syscall.SIGCHLD)
 
 	// process manager
-	for {
+	for i := 0; ; i++ {
+		startTime := time.Now()
 		s.startWorker()
+		for {
+			endTime := time.Now()
+			duration := endTime.Sub(startTime)
+			seconds := duration.Seconds()
+
+			if i == 0 && seconds < 0.5 {
+				log.Printf("worker exited too fast, exiting")
+				os.Exit(1)
+			}
+
+			// restart for every 5s
+			if seconds > 5 {
+				break
+			} else {
+				time.Sleep(time.Second)
+			}
+		}
 	}
 }
 

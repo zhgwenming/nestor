@@ -37,12 +37,11 @@ type Handler interface {
 
 type Daemon struct {
 	PidFile     string
-	LogFile     string
 	Foreground  bool
 	Signalc     chan os.Signal
 	Command     exec.Cmd
 	WaitSeconds time.Duration
-	log         logFile
+	Log         logFile
 	h           Handler
 }
 
@@ -50,7 +49,6 @@ func NewDaemon() *Daemon {
 	d := &Daemon{WaitSeconds: time.Second}
 	d.Signalc = make(chan os.Signal, 1)
 
-	d.log.name = &d.LogFile
 	return d
 }
 
@@ -93,19 +91,19 @@ func (d *Daemon) cleanPidfile() {
 func (d *Daemon) createLogfile() (*os.File, error) {
 	var err error
 
-	if d.LogFile == "" {
+	if d.Log.path == "" {
 		logfile := "/tmp/" + path.Base(os.Args[0]) + ".log"
-		d.LogFile = logfile
+		d.Log.path = logfile
 	}
 
-	if err = d.log.Open(); err != nil {
-		fmt.Printf("- Failed to create output log file\n")
+	if err = d.Log.Open(); err != nil {
+		fmt.Printf("- Failed to create output log file - %s: %s\n", d.Log.path, err)
 	}
 
 	if err != nil {
 		return nil, err
 	} else {
-		return d.log.file, nil
+		return d.Log.file, nil
 	}
 }
 
@@ -142,7 +140,7 @@ func (d *Daemon) parent() {
 			if sig == syscall.SIGCHLD {
 				if err := cmd.Wait(); err != nil {
 					fmt.Printf("- daemon exited with %s\n", err)
-					d.log.Dump(os.Stderr)
+					d.Log.Dump(os.Stderr)
 				}
 			}
 		}
