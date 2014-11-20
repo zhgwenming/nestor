@@ -68,18 +68,13 @@ func (s *Supervisor) supervise() {
 		syscall.SIGCHLD)
 
 	// process manager
-	for i := 0; ; i++ {
+	for {
 		startTime := time.Now()
 		s.startWorker()
 		for {
 			endTime := time.Now()
 			duration := endTime.Sub(startTime)
 			seconds := duration.Seconds()
-
-			if i == 0 && seconds < 0.3 {
-				log.Printf("worker exited too fast, exiting")
-				os.Exit(1)
-			}
 
 			// restart for every 5s
 			if seconds > 5 {

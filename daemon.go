@@ -135,7 +135,7 @@ func (d *Daemon) parent() {
 	if err := cmd.Start(); err == nil {
 		fmt.Printf("- Started daemon as pid %d\n", cmd.Process.Pid)
 		select {
-		case <-time.After(time.Second / 3):
+		case <-time.After(time.Second / 5):
 		case sig := <-d.Signalc:
 			if sig == syscall.SIGCHLD {
 				if err := cmd.Wait(); err != nil {
