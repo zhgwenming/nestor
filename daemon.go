@@ -43,12 +43,15 @@ type Daemon struct {
 	Signalc     chan os.Signal
 	Command     exec.Cmd
 	WaitSeconds time.Duration
+	log         logFile
 	h           Handler
 }
 
 func NewDaemon() *Daemon {
 	d := &Daemon{WaitSeconds: time.Second}
 	d.Signalc = make(chan os.Signal, 1)
+
+	d.log.name = &d.LogFile
 	return d
 }
 
@@ -88,30 +91,22 @@ func (d *Daemon) cleanPidfile() {
 	}
 }
 
-func openLog(name string) (*os.File, error) {
-	return os.OpenFile(name, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-}
-
 func (d *Daemon) createLogfile() (*os.File, error) {
 	var err error
-	var file *os.File
 
 	if d.LogFile == "" {
 		logfile := "/tmp/" + path.Base(os.Args[0]) + ".log"
 		d.LogFile = logfile
-		if file, err = openLog(logfile); err != nil {
-			fmt.Printf("- Failed to create output log file\n")
-		}
-	} else {
-		if file, err = openLog(d.LogFile); err != nil {
-			fmt.Printf("- Failed to create output log file\n")
-		}
+	}
+
+	if err = d.log.Open(); err != nil {
+		fmt.Printf("- Failed to create output log file\n")
 	}
 
 	if err != nil {
 		return nil, err
 	} else {
-		return file, nil
+		return d.log.file, nil
 	}
 }
 
