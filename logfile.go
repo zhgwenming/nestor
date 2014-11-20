@@ -28,7 +28,7 @@ func (l *logFile) Open() error {
 
 	// mark the end offset
 	offset, err := file.Seek(0, os.SEEK_END)
-	if err != nil {
+	if err == nil {
 		l.offset = offset
 	}
 
@@ -36,11 +36,20 @@ func (l *logFile) Open() error {
 }
 
 func (l *logFile) Dump(output io.Writer) error {
-	buf := make([]byte, 1024)
+	buf := make([]byte, 2048)
 	_, err := l.file.ReadAt(buf, l.offset)
-	fmt.Fprintf(output, "daemon output:\n%s\n", buf)
+
+	fmt.Fprintln(output, "daemon output:")
+
+	fmt.Fprintln(output, "```")
+	fmt.Fprintf(output, "%s", buf)
 	if err != io.EOF {
-		fmt.Printf("\n\nLog file is too long, please go check directly")
+		fmt.Println("  ...")
+		fmt.Println("```")
+		fmt.Println("- Ignored the exceeding contents, please check the output file.")
+	} else {
+		fmt.Println("```")
 	}
+
 	return nil
 }
