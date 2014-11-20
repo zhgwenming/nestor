@@ -58,7 +58,7 @@ func (s *Supervisor) startWorker() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		log.Printf("worker[%d] exited with - %s, restarting..\n", cmd.Process.Pid, err)
+		log.Printf("worker[%d] exited with - %s\n", cmd.Process.Pid, err)
 	}
 
 }
@@ -88,6 +88,7 @@ func (s *Supervisor) supervise() {
 				time.Sleep(time.Second)
 			}
 		}
+		log.Printf("restarting worker\n")
 	}
 }
 
