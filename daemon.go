@@ -9,6 +9,7 @@ package nestor
 import (
 	"fmt"
 	"github.com/zhgwenming/gbalancer/utils"
+	"io/ioutil"
 	stdlog "log"
 	"log/syslog"
 	"os"
@@ -97,6 +98,7 @@ func (d *Daemon) createLogfile() (*os.File, error) {
 
 	if d.LogFile == "" {
 		logfile := "/tmp/" + path.Base(os.Args[0]) + ".log"
+		d.LogFile = logfile
 		if file, err = openLog(logfile); err != nil {
 			fmt.Printf("- Failed to create output log file\n")
 		}
@@ -145,7 +147,10 @@ func (d *Daemon) parent() {
 		case sig := <-d.Signalc:
 			if sig == syscall.SIGCHLD {
 				if err := cmd.Wait(); err != nil {
-					fmt.Printf("daemon exited with %s", err)
+					fmt.Printf("- daemon exited with %s\n", err)
+					if buf, err := ioutil.ReadFile(d.LogFile); err == nil {
+						fmt.Printf("Error output is:\n%s", buf)
+					}
 				}
 			}
 		}
