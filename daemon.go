@@ -9,7 +9,6 @@ package nestor
 import (
 	"fmt"
 	"github.com/zhgwenming/gbalancer/utils"
-	"io/ioutil"
 	stdlog "log"
 	"log/syslog"
 	"os"
@@ -143,9 +142,7 @@ func (d *Daemon) parent() {
 			if sig == syscall.SIGCHLD {
 				if err := cmd.Wait(); err != nil {
 					fmt.Printf("- daemon exited with %s\n", err)
-					if buf, err := ioutil.ReadFile(d.LogFile); err == nil {
-						fmt.Printf("Error output is:\n%s", buf)
-					}
+					d.log.Dump(os.Stderr)
 				}
 			}
 		}

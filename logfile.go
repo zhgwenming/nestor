@@ -7,6 +7,7 @@
 package nestor
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
@@ -34,6 +35,12 @@ func (l *logFile) Open() error {
 	return err
 }
 
-func (l *logFile) Dump(output *io.Writer) error {
+func (l *logFile) Dump(output io.Writer) error {
+	buf := make([]byte, 1024)
+	_, err := l.file.ReadAt(buf, l.offset)
+	fmt.Fprintf(output, "daemon output:\n%s\n", buf)
+	if err != io.EOF {
+		fmt.Printf("\n\nLog file is too long, please go check directly")
+	}
 	return nil
 }
