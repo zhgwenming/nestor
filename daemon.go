@@ -252,8 +252,10 @@ func (d *Daemon) Sink() error {
 		d.parent()                           // fork and exit
 		log.Fatal("BUG, parent didn't exit") //should never get here
 	case "child":
-		if err := os.Unsetenv(ENV_DAEMON); err != nil {
-			fatal(err)
+		if UNSET_ENV {
+			if err := os.Unsetenv(ENV_DAEMON); err != nil {
+				fatal(err)
+			}
 		}
 
 		d.child()

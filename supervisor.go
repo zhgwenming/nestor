@@ -16,6 +16,7 @@ import (
 
 const (
 	ENV_SUPERVISOR = "__GO_SUPERVISOR_MODE"
+	UNSET_ENV      = false // set it to false to support reexec
 )
 
 var (
@@ -109,8 +110,10 @@ func (s *Supervisor) Sink() error {
 		s.supervise()
 		log.Fatal("BUG, supervisor should loop forever") //should never get here
 	case "worker":
-		if err := os.Unsetenv(ENV_SUPERVISOR); err != nil {
-			fatal(err)
+		if UNSET_ENV {
+			if err := os.Unsetenv(ENV_SUPERVISOR); err != nil {
+				fatal(err)
+			}
 		}
 	default:
 		err := fmt.Errorf("critical error, unknown mode: %s", mode)
