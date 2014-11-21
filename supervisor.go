@@ -2,8 +2,6 @@
 // Use of this source code is governed by a GPLv3
 // Author: Wenming Zhang <zhgwenming@gmail.com>
 
-// +build go1.4
-
 package nestor
 
 import (
@@ -16,7 +14,6 @@ import (
 
 const (
 	ENV_SUPERVISOR = "__GO_SUPERVISOR_MODE"
-	UNSET_ENV      = false // set it to false to support reexec
 )
 
 var (
@@ -110,11 +107,10 @@ func (s *Supervisor) Sink() error {
 		s.supervise()
 		log.Fatal("BUG, supervisor should loop forever") //should never get here
 	case "worker":
-		if UNSET_ENV {
-			if err := os.Unsetenv(ENV_SUPERVISOR); err != nil {
-				fatal(err)
-			}
+		if err := unsetenv(ENV_SUPERVISOR); err != nil {
+			fatal(err)
 		}
+
 	default:
 		err := fmt.Errorf("critical error, unknown mode: %s", mode)
 		fmt.Println(err)
