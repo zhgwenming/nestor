@@ -24,12 +24,12 @@ var (
 )
 
 type Supervisor struct {
-	Daemon
+	*Daemon
 }
 
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
-	return &Supervisor{*d}
+	return &Supervisor{d}
 }
 
 func (s *Supervisor) startWorker() {
