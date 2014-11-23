@@ -2,8 +2,6 @@
 // Use of this source code is governed by a GPLv3
 // Author: Wenming Zhang <zhgwenming@gmail.com>
 
-// +build go1.4
-
 package nestor
 
 import (
@@ -252,10 +250,8 @@ func (d *Daemon) Sink() error {
 		d.parent()                           // fork and exit
 		log.Fatal("BUG, parent didn't exit") //should never get here
 	case "child":
-		if UNSET_ENV {
-			if err := os.Unsetenv(ENV_DAEMON); err != nil {
-				fatal(err)
-			}
+		if err := unsetenv(ENV_DAEMON); err != nil {
+			fatal(err)
 		}
 
 		d.child()
