@@ -227,7 +227,13 @@ func (d *Daemon) Sink() error {
 		return nil
 	}
 
-	if p, err := filepath.Abs(os.Args[0]); err != nil {
+	// make path as abs path or relative path
+	cmdPath, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		fatal(err)
+	}
+
+	if p, err := filepath.Abs(cmdPath); err != nil {
 		fatal(err)
 	} else {
 		d.Command = exec.Cmd{
