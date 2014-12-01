@@ -22,11 +22,13 @@ var (
 
 type Supervisor struct {
 	*Daemon
+	cmds []Cmd
 }
 
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
-	return &Supervisor{d}
+	c := make([]Cmd, 0, 4)
+	return &Supervisor{d, c}
 }
 
 func (s *Supervisor) startWorker() {
