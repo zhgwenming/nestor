@@ -90,6 +90,35 @@ func (s *Supervisor) supervise() {
 	}
 }
 
+func (s *Supervisor) start() error {
+	if len(s.cmds) == 0 {
+		err := errors.New("no cmd specified")
+		return err
+	}
+
+	// run all cmds as goroutines
+	for _, c := range s.cmds {
+		s.RunForever(c.Run)
+	}
+
+	// fork the foreground bash
+	if s.Foreground {
+	}
+
+	// wait to exit
+	for sig := range s.Signalc {
+		log.Printf("monitor captured %v\n", sig)
+
+		// only exit if we got a TERM signal
+		if sig == syscall.SIGTERM {
+			//cmd.Process.Signal(sig)
+			os.Exit(0)
+		}
+	}
+
+	return nil
+}
+
 func (s *Supervisor) Sink() error {
 	mode := os.Getenv(ENV_SUPERVISOR)
 

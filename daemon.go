@@ -150,16 +150,15 @@ func (d *Daemon) parent() {
 }
 
 // RunWait will run the specified function in safe mode, it blocks the caller until it finished
-func (d *Daemon) RunWait(handler func()) error {
+func (d *Daemon) RunWait(handler func() error) error {
 	if p := recover(); p != nil {
 		log.Printf("%s\nbacktrace:\n%s", p, debug.Stack())
 	}
-	handler()
 
-	return nil
+	return handler()
 }
 
-func (d *Daemon) runLoop(handler func()) error {
+func (d *Daemon) runLoop(handler func() error) {
 	for {
 		startTime := time.Now()
 		d.RunWait(handler)
@@ -178,17 +177,13 @@ func (d *Daemon) runLoop(handler func()) error {
 // RunForever returns imediately to the caller and run the specified function
 // in background, it watches over the requested function in a separate
 // goroutine, the function will get restarted infinitely on errors.
-func (d *Daemon) RunForever(handler func()) error {
+func (d *Daemon) RunForever(handler func() error) {
 	go d.runLoop(handler)
-
-	return nil
 }
 
 // RunForever returns imediately to the caller and run the specified function in background
-func (d *Daemon) RunOnce(handler func()) error {
+func (d *Daemon) RunOnce(handler func() error) {
 	go d.RunWait(handler)
-
-	return nil
 }
 
 // selfCmd run before Sink
