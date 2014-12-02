@@ -215,8 +215,18 @@ func (d *Daemon) setSelfCmd() error {
 // Parent process will never return
 // Will return back to the worker process
 func (d *Daemon) Sink() error {
-	if d.h == nil {
-		return fmt.Errorf("Handler should be specified first")
+	if d.Cmd.Path == "" {
+		if d.h != nil {
+			if err := d.setSelfCmd(); err != nil {
+				fatal(err)
+			}
+		} else {
+			return fmt.Errorf("Handler or Command should be specified first")
+		}
+	} else {
+		if d.h != nil {
+			return fmt.Errorf("Handler couldn't coexist with Command")
+		}
 	}
 
 	// the signal handler is needed for both parent and child
@@ -308,10 +318,6 @@ func (h HandlerFunc) Stop() error {
 }
 
 func (d *Daemon) Handle(h Handler) {
-	if err := d.setSelfCmd(); err != nil {
-		fatal(err)
-	}
-
 	d.h = h
 }
 
