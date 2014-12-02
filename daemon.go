@@ -158,10 +158,18 @@ func (d *Daemon) RunWait(handler func() error) error {
 	return handler()
 }
 
-func (d *Daemon) runLoop(handler func() error) {
+func (d *Daemon) runLoop(handler func() error, done <-chan struct{}) {
 	for {
 		startTime := time.Now()
 		d.RunWait(handler)
+
+		// a chance to return
+		select {
+		case <-done:
+			return
+		default:
+		}
+
 		for {
 			endTime := time.Now()
 			duration := endTime.Sub(startTime)
@@ -177,8 +185,8 @@ func (d *Daemon) runLoop(handler func() error) {
 // RunForever returns imediately to the caller and run the specified function
 // in background, it watches over the requested function in a separate
 // goroutine, the function will get restarted infinitely on errors.
-func (d *Daemon) RunForever(handler func() error) {
-	go d.runLoop(handler)
+func (d *Daemon) RunForever(handler func() error, done <-chan struct{}) {
+	go d.runLoop(handler, done)
 }
 
 // RunForever returns imediately to the caller and run the specified function in background
