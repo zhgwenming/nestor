@@ -317,15 +317,17 @@ type SinkServer interface {
 }
 
 func DaemonHandle(pidfile string, foreground bool, h Handler) SinkServer {
-	DefaultDaemon.h = h
+	DefaultDaemon.Handle(h)
 	DefaultDaemon.PidFile = pidfile
 	DefaultDaemon.Foreground = foreground
 	return DefaultDaemon
 }
 
 func DaemonHandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
-	h := HandlerFunc(f)
-	return DaemonHandle(pidfile, foreground, h)
+	DefaultDaemon.PidFile = pidfile
+	DefaultDaemon.Foreground = foreground
+	DefaultDaemon.HandleFunc(f)
+	return DefaultDaemon
 }
 
 // a function calls different sink functions
