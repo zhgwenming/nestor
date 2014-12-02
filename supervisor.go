@@ -33,7 +33,7 @@ func NewSupervisor() *Supervisor {
 }
 
 func (s *Supervisor) startWorker() {
-	cmd := s.selfCmd
+	cmd := s.Cmd
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -122,6 +122,18 @@ func (s *Supervisor) Sink() error {
 	}
 
 	return nil
+}
+
+func (s *Supervisor) Handle(h Handler) {
+	s.Daemon.Handle(h)
+	cmd := &s.Daemon.Cmd
+	s.cmds = append(s.cmds, cmd)
+}
+
+func (s *Supervisor) HandleFunc(f func() error) {
+	s.Daemon.HandleFunc(f)
+	cmd := &s.Daemon.Cmd
+	s.cmds = append(s.cmds, cmd)
 }
 
 func Handle(pidfile string, foreground bool, h Handler) SinkServer {

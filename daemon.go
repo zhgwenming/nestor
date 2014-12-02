@@ -37,7 +37,7 @@ type Daemon struct {
 	PidFile     string
 	Foreground  bool
 	Signalc     chan os.Signal
-	selfCmd     exec.Cmd
+	Cmd         exec.Cmd
 	WaitSeconds time.Duration
 	Log         logFile
 	h           Handler
@@ -119,7 +119,7 @@ func (d *Daemon) parent() {
 	signal.Notify(d.Signalc,
 		syscall.SIGCHLD)
 
-	cmd := d.selfCmd
+	cmd := d.Cmd
 
 	procAttr := &syscall.SysProcAttr{Setsid: true}
 	cmd.SysProcAttr = procAttr
@@ -191,6 +191,26 @@ func (d *Daemon) RunOnce(handler func()) error {
 	return nil
 }
 
+// selfCmd run before Sink
+func (d *Daemon) setSelfCmd() error {
+	// make path as abs path or relative path
+	cmdPath, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+
+	if p, err := filepath.Abs(cmdPath); err != nil {
+		return err
+	} else {
+		d.Cmd = exec.Cmd{
+			Path: p,
+			Args: os.Args,
+		}
+	}
+
+	return nil
+}
+
 // Start will setup the daemon environment and create pidfile if pidfile is not empty
 // Parent process will never return
 // Will return back to the worker process
@@ -225,21 +245,6 @@ func (d *Daemon) Sink() error {
 		fmt.Printf("- Running as foreground process\n")
 		d.setupPidfile()
 		return nil
-	}
-
-	// make path as abs path or relative path
-	cmdPath, err := exec.LookPath(os.Args[0])
-	if err != nil {
-		fatal(err)
-	}
-
-	if p, err := filepath.Abs(cmdPath); err != nil {
-		fatal(err)
-	} else {
-		d.selfCmd = exec.Cmd{
-			Path: p,
-			Args: os.Args,
-		}
 	}
 
 	// parent/child/worker logic
@@ -303,11 +308,16 @@ func (h HandlerFunc) Stop() error {
 }
 
 func (d *Daemon) Handle(h Handler) {
+	if err := d.setSelfCmd(); err != nil {
+		fatal(err)
+	}
+
 	d.h = h
 }
 
 func (d *Daemon) HandleFunc(f func() error) {
-	d.h = HandlerFunc(f)
+	h := HandlerFunc(f)
+	d.Handle(h)
 }
 
 type SinkServer interface {
