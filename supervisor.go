@@ -5,6 +5,7 @@
 package nestor
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -136,6 +137,17 @@ func (s *Supervisor) HandleFunc(f func() error) {
 	s.cmds = append(s.cmds, cmd)
 }
 
+func (s *Supervisor) AddCommand(name string, arg ...string) error {
+	if name == "" {
+		return errors.New("Empty Command")
+	}
+
+	cmd := exec.Command(name, arg...)
+	s.cmds = append(s.cmds, cmd)
+
+	return nil
+}
+
 func Handle(pidfile string, foreground bool, h Handler) SinkServer {
 	DefaultSupervisor.PidFile = pidfile
 	DefaultSupervisor.Foreground = foreground
@@ -148,4 +160,14 @@ func HandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
 	DefaultSupervisor.Foreground = foreground
 	DefaultSupervisor.HandleFunc(f)
 	return DefaultSupervisor
+}
+
+func AddCommand(pidfile string, foreground bool, name string, arg ...string) (SinkServer, error) {
+	DefaultSupervisor.PidFile = pidfile
+
+	if err := DefaultSupervisor.AddCommand(name, arg...); err != nil {
+		return nil, err
+	} else {
+		return DefaultSupervisor, nil
+	}
 }

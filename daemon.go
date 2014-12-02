@@ -307,6 +307,22 @@ func (d *Daemon) WaitSignal() {
 	return
 }
 
+func (d *Daemon) Command(name string, arg ...string) error {
+	d.Cmd = exec.Cmd{
+		Path: name,
+		Args: append([]string{name}, arg...),
+	}
+	if filepath.Base(name) == name {
+		if lp, err := exec.LookPath(name); err != nil {
+			return err
+		} else {
+			d.Cmd.Path = lp
+		}
+	}
+
+	return nil
+}
+
 type HandlerFunc func() error
 
 func (h HandlerFunc) Serve() error {
@@ -344,6 +360,14 @@ func DaemonHandleFunc(pidfile string, foreground bool, f func() error) SinkServe
 	DefaultDaemon.Foreground = foreground
 	DefaultDaemon.HandleFunc(f)
 	return DefaultDaemon
+}
+
+func DaemonCommand(pidfile string, name string, arg ...string) (SinkServer, error) {
+	if err := DefaultDaemon.Command(name, arg...); err != nil {
+		return nil, err
+	} else {
+		return DefaultDaemon, nil
+	}
 }
 
 // a function calls different sink functions
