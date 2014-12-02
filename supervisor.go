@@ -32,7 +32,7 @@ func NewSupervisor() *Supervisor {
 }
 
 func (s *Supervisor) startWorker() {
-	cmd := s.Command
+	cmd := s.selfCmd
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

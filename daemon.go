@@ -37,7 +37,7 @@ type Daemon struct {
 	PidFile     string
 	Foreground  bool
 	Signalc     chan os.Signal
-	Command     exec.Cmd
+	selfCmd     exec.Cmd
 	WaitSeconds time.Duration
 	Log         logFile
 	h           Handler
@@ -119,7 +119,7 @@ func (d *Daemon) parent() {
 	signal.Notify(d.Signalc,
 		syscall.SIGCHLD)
 
-	cmd := d.Command
+	cmd := d.selfCmd
 
 	procAttr := &syscall.SysProcAttr{Setsid: true}
 	cmd.SysProcAttr = procAttr
@@ -236,7 +236,7 @@ func (d *Daemon) Sink() error {
 	if p, err := filepath.Abs(cmdPath); err != nil {
 		fatal(err)
 	} else {
-		d.Command = exec.Cmd{
+		d.selfCmd = exec.Cmd{
 			Path: p,
 			Args: os.Args,
 		}
