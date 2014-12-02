@@ -29,8 +29,8 @@ var (
 )
 
 type Handler interface {
-	Serve()
-	Stop()
+	Serve() error
+	Stop() error
 }
 
 type Daemon struct {
@@ -292,21 +292,21 @@ func (d *Daemon) WaitSignal() {
 	return
 }
 
-type HandlerFunc func()
+type HandlerFunc func() error
 
-func (h HandlerFunc) Serve() {
-	h()
+func (h HandlerFunc) Serve() error {
+	return h()
 }
 
-func (h HandlerFunc) Stop() {
-	return
+func (h HandlerFunc) Stop() error {
+	return nil
 }
 
 func (d *Daemon) Handle(h Handler) {
 	d.h = h
 }
 
-func (d *Daemon) HandleFunc(f func()) {
+func (d *Daemon) HandleFunc(f func() error) {
 	d.h = HandlerFunc(f)
 }
 
@@ -323,7 +323,7 @@ func DaemonHandle(pidfile string, foreground bool, h Handler) SinkServer {
 	return DefaultDaemon
 }
 
-func DaemonHandleFunc(pidfile string, foreground bool, f func()) SinkServer {
+func DaemonHandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
 	h := HandlerFunc(f)
 	return DaemonHandle(pidfile, foreground, h)
 }

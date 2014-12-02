@@ -7,6 +7,7 @@ package nestor
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -22,12 +23,12 @@ var (
 
 type Supervisor struct {
 	*Daemon
-	cmds []Cmd
+	cmds []*exec.Cmd
 }
 
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
-	c := make([]Cmd, 0, 4)
+	c := make([]*exec.Cmd, 0, 4)
 	return &Supervisor{d, c}
 }
 
@@ -130,7 +131,7 @@ func Handle(pidfile string, foreground bool, h Handler) SinkServer {
 	return DefaultSupervisor
 }
 
-func HandleFunc(pidfile string, foreground bool, f func()) SinkServer {
+func HandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
 	h := HandlerFunc(f)
 	return Handle(pidfile, foreground, h)
 }
