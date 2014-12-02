@@ -16,6 +16,7 @@ import (
 
 const (
 	ENV_SUPERVISOR = "__GO_SUPERVISOR_MODE"
+	LOGIN_SHELL    = "/bin/bash"
 )
 
 var (
@@ -33,7 +34,7 @@ func NewSupervisor() *Supervisor {
 	return &Supervisor{d, c}
 }
 
-func (s *Supervisor) startWorker() {
+func (s *Supervisor) embededWorker() {
 	cmd := s.Cmd
 
 	cmd.Stdout = os.Stdout
@@ -72,7 +73,7 @@ func (s *Supervisor) supervise() {
 	// process manager
 	for {
 		startTime := time.Now()
-		s.startWorker()
+		s.embededWorker()
 		for {
 			endTime := time.Now()
 			duration := endTime.Sub(startTime)
@@ -162,9 +163,7 @@ func HandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
 	return DefaultSupervisor
 }
 
-func AddCommand(pidfile string, foreground bool, name string, arg ...string) (SinkServer, error) {
-	DefaultSupervisor.PidFile = pidfile
-
+func AddCommand(foreground bool, name string, arg ...string) (SinkServer, error) {
 	if err := DefaultSupervisor.AddCommand(name, arg...); err != nil {
 		return nil, err
 	} else {
