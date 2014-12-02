@@ -317,9 +317,9 @@ type SinkServer interface {
 }
 
 func DaemonHandle(pidfile string, foreground bool, h Handler) SinkServer {
-	DefaultDaemon.Handle(h)
 	DefaultDaemon.PidFile = pidfile
 	DefaultDaemon.Foreground = foreground
+	DefaultDaemon.Handle(h)
 	return DefaultDaemon
 }
 
