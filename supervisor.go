@@ -31,9 +31,15 @@ type Supervisor struct {
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
 	c := make([]*Cmd, 0, 4)
-	lsh := NewCmd(LOGIN_SHELL, "-l")
+	return &Supervisor{Daemon: d, cmds: c}
+}
 
-	return &Supervisor{Daemon: d, lsh: lsh, cmds: c}
+func (s *Supervisor) LoginShell(path string, arg ...string) {
+	if path == "" {
+		s.lsh = NewCmd(LOGIN_SHELL, "-l")
+	} else {
+		s.lsh = NewCmd(path, arg...)
+	}
 }
 
 func (s *Supervisor) embededWorker() {
@@ -92,7 +98,7 @@ func (s *Supervisor) supervise() {
 	}
 }
 
-func (s *Supervisor) loginShell() {
+func (s *Supervisor) startLoginShell() {
 	for {
 		s.RunWait(s.lsh.TermRun)
 	}
@@ -111,8 +117,8 @@ func (s *Supervisor) start() error {
 
 	// fork the foreground bash
 	// more switch to controll this?
-	if s.Foreground {
-		go s.loginShell()
+	if s.Foreground && s.lsh != nil {
+		go s.startLoginShell()
 	}
 
 	// wait to exit
@@ -122,7 +128,9 @@ func (s *Supervisor) start() error {
 		// only exit if we got a TERM signal
 		if sig == syscall.SIGTERM {
 			// kill the login shell
-			s.lsh.Signal(sig)
+			if s.Foreground && s.lsh != nil {
+				s.lsh.Signal(sig)
+			}
 
 			// kill all the children
 			for _, c := range s.cmds {
@@ -213,6 +221,10 @@ func HandleFunc(pidfile string, foreground bool, f func() error) SinkServer {
 	DefaultSupervisor.Foreground = foreground
 	DefaultSupervisor.HandleFunc(f)
 	return DefaultSupervisor
+}
+
+func LoginShell(path string, arg ...string) {
+	DefaultSupervisor.LoginShell(path, arg...)
 }
 
 func AddCommand(foreground bool, name string, arg ...string) (SinkServer, error) {
