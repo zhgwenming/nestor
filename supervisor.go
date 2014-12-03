@@ -95,11 +95,9 @@ func (s *Supervisor) start() error {
 		return err
 	}
 
-	done := make(chan struct{})
-
 	// run all cmds as goroutines
 	for _, c := range s.cmds {
-		s.RunForever(c.Run, done)
+		s.RunForever(c.Run)
 	}
 
 	// fork the foreground bash
@@ -112,10 +110,9 @@ func (s *Supervisor) start() error {
 
 		// only exit if we got a TERM signal
 		if sig == syscall.SIGTERM {
-			//cmd.Process.Signal(sig)
-			//for _, c := range s.cmds {
-			//	//p := c.Process
-			//}
+			for _, c := range s.cmds {
+				c.Signal(sig)
+			}
 			os.Exit(0)
 		}
 	}

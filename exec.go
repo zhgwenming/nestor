@@ -32,7 +32,7 @@ func (c *Cmd) Done() {
 	c.done = true
 }
 
-func (c *Cmd) Kill(sig os.Signal) {
+func (c *Cmd) Signal(sig os.Signal) {
 	c.Lock()
 	defer c.Unlock()
 
