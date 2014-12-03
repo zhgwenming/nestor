@@ -5,6 +5,7 @@
 package nestor
 
 import (
+	"errors"
 	"fmt"
 	"github.com/zhgwenming/gbalancer/utils"
 	stdlog "log"
@@ -150,13 +151,20 @@ func (d *Daemon) parent() {
 }
 
 // RunWait will run the specified function in safe mode, it blocks the caller until it finished
-func (d *Daemon) RunWait(handler func() error) error {
-	var err error
+func (d *Daemon) RunWait(handler func() error) (err error) {
 	defer func() {
-		if p := recover(); p != nil {
-			log.Printf("recovered f %s\nbacktrace:\n%s", p, debug.Stack())
+		if r := recover(); r != nil {
+			log.Printf("recovered f %s\nbacktrace:\n%s", r, debug.Stack())
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("Unknown panic")
+			}
+			err = newError(ErrPanic)
 		}
-		err = newError(ErrPanic)
 	}()
 
 	err = handler()
