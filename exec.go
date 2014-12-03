@@ -41,6 +41,11 @@ func (c *Cmd) Signal(sig os.Signal) {
 	}
 }
 
+// Kill is to signal the process with sig KILL
+func (c *Cmd) Kill() {
+	c.Signal(os.Kill)
+}
+
 // Start Under the protection of mutex
 func (c *Cmd) Start() error {
 	cmd := exec.Command(c.name, c.arg...)

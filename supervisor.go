@@ -110,6 +110,7 @@ func (s *Supervisor) start() error {
 	}
 
 	// fork the foreground bash
+	// more switch to controll this?
 	if s.Foreground {
 		go s.loginShell()
 	}
