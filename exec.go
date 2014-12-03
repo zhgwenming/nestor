@@ -32,6 +32,14 @@ func (c *Cmd) Done() {
 	c.done = true
 }
 
+func (c *Cmd) Kill(sig os.Signal) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.done = true
+	c.Process.Signal(sig)
+}
+
 // Start Under the protection of mutex
 func (c *Cmd) Start() error {
 	cmd := exec.Command(c.name, c.arg...)
