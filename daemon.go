@@ -151,17 +151,26 @@ func (d *Daemon) parent() {
 
 // RunWait will run the specified function in safe mode, it blocks the caller until it finished
 func (d *Daemon) RunWait(handler func() error) error {
-	if p := recover(); p != nil {
-		log.Printf("%s\nbacktrace:\n%s", p, debug.Stack())
-	}
+	var err error
+	defer func() {
+		if p := recover(); p != nil {
+			log.Printf("recovered f %s\nbacktrace:\n%s", p, debug.Stack())
+		}
+		err = newError(ErrPanic)
+	}()
 
-	return handler()
+	err = handler()
+	return err
 }
 
 func (d *Daemon) runLoop(handler func() error) {
 	for {
 		startTime := time.Now()
-		d.RunWait(handler)
+
+		// exit goroutine if handler finished w/o errors
+		if err := d.RunWait(handler); err == nil {
+			return
+		}
 
 		for {
 			endTime := time.Now()

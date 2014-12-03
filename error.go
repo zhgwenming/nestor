@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	ErrCode = 1
+	ErrCode  = 1
+	ErrPanic = iota
 )
 
 var (
@@ -18,4 +19,13 @@ var (
 
 type NestorError struct {
 	errcode int
+}
+
+func newError(e int) *NestorError {
+	return &NestorError{e}
+}
+
+// todo
+func (e *NestorError) Error() string {
+	return ""
 }
