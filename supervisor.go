@@ -24,13 +24,16 @@ var (
 
 type Supervisor struct {
 	*Daemon
+	lsh  *Cmd
 	cmds []*Cmd
 }
 
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
 	c := make([]*Cmd, 0, 4)
-	return &Supervisor{d, c}
+	lsh := NewCmd(LOGIN_SHELL, "-l")
+
+	return &Supervisor{Daemon: d, lsh: lsh, cmds: c}
 }
 
 func (s *Supervisor) embededWorker() {
@@ -89,6 +92,12 @@ func (s *Supervisor) supervise() {
 	}
 }
 
+func (s *Supervisor) loginShell() {
+	for {
+		s.RunWait(s.lsh.TermRun)
+	}
+}
+
 func (s *Supervisor) start() error {
 	if len(s.cmds) == 0 {
 		err := errors.New("no cmd specified")
@@ -102,6 +111,7 @@ func (s *Supervisor) start() error {
 
 	// fork the foreground bash
 	if s.Foreground {
+		go s.loginShell()
 	}
 
 	// wait to exit
@@ -110,6 +120,10 @@ func (s *Supervisor) start() error {
 
 		// only exit if we got a TERM signal
 		if sig == syscall.SIGTERM {
+			// kill the login shell
+			s.lsh.Signal(sig)
+
+			// kill all the children
 			for _, c := range s.cmds {
 				c.Signal(sig)
 			}

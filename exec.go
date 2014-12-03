@@ -16,7 +16,6 @@ type Cmd struct {
 	*exec.Cmd
 	name string
 	arg  []string
-	proc *os.Process
 	done bool
 }
 
@@ -37,7 +36,9 @@ func (c *Cmd) Signal(sig os.Signal) {
 	defer c.Unlock()
 
 	c.done = true
-	c.Process.Signal(sig)
+	if c.Process != nil {
+		c.Process.Signal(sig)
+	}
 }
 
 // Start Under the protection of mutex
@@ -57,11 +58,21 @@ func (c *Cmd) Start() error {
 		return err
 	}
 
-	c.proc = c.Cmd.Process
 	return nil
 }
 
 func (c *Cmd) Run() error {
+	if err := c.Start(); err != nil {
+		return err
+	}
+
+	return c.Cmd.Wait()
+}
+
+func (c *Cmd) TermRun() error {
+	buf := make([]byte, 16)
+	os.Stdin.Read(buf)
+
 	if err := c.Start(); err != nil {
 		return err
 	}
