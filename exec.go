@@ -14,6 +14,12 @@ type Cmd struct {
 	*exec.Cmd
 }
 
+func NewCmd(name string, arg ...string) *Cmd {
+	c := exec.Command(name, arg...)
+	cmd := &Cmd{Cmd: c}
+	return cmd
+}
+
 func (c *Cmd) Command(name string, arg ...string) error {
 	c.Cmd = exec.Command(name, arg...)
 	return nil

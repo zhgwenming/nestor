@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -25,12 +24,12 @@ var (
 
 type Supervisor struct {
 	*Daemon
-	cmds []*exec.Cmd
+	cmds []*Cmd
 }
 
 func NewSupervisor() *Supervisor {
 	d := NewDaemon()
-	c := make([]*exec.Cmd, 0, 4)
+	c := make([]*Cmd, 0, 4)
 	return &Supervisor{d, c}
 }
 
@@ -162,14 +161,14 @@ func (s *Supervisor) Sink() error {
 
 func (s *Supervisor) Handle(h Handler) {
 	s.Daemon.Handle(h)
-	cmd := &s.Daemon.Cmd
+	c := &s.Daemon.Cmd
+	cmd := &Cmd{Cmd: c}
 	s.cmds = append(s.cmds, cmd)
 }
 
 func (s *Supervisor) HandleFunc(f func() error) {
-	s.Daemon.HandleFunc(f)
-	cmd := &s.Daemon.Cmd
-	s.cmds = append(s.cmds, cmd)
+	h := HandlerFunc(f)
+	s.Handle(h)
 }
 
 func (s *Supervisor) AddCommand(name string, arg ...string) error {
@@ -177,7 +176,7 @@ func (s *Supervisor) AddCommand(name string, arg ...string) error {
 		return errors.New("Empty Command")
 	}
 
-	cmd := exec.Command(name, arg...)
+	cmd := NewCmd(name, arg...)
 	s.cmds = append(s.cmds, cmd)
 
 	return nil
