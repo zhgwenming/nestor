@@ -159,16 +159,23 @@ func (s *Supervisor) Sink() error {
 	return nil
 }
 
-func (s *Supervisor) Handle(h Handler) {
+// Handle will install a handler to supervisor, just one handler can be added
+func (s *Supervisor) Handle(h Handler) error {
+	if len(s.cmds) > 1 {
+		return errors.New("Handler already existed")
+	}
+
 	s.Daemon.Handle(h)
 	c := &s.Daemon.Cmd
 	cmd := &Cmd{Cmd: c}
 	s.cmds = append(s.cmds, cmd)
+
+	return nil
 }
 
-func (s *Supervisor) HandleFunc(f func() error) {
+func (s *Supervisor) HandleFunc(f func() error) error {
 	h := HandlerFunc(f)
-	s.Handle(h)
+	return s.Handle(h)
 }
 
 func (s *Supervisor) AddCommand(name string, arg ...string) error {
