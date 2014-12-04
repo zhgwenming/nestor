@@ -14,9 +14,10 @@ import (
 type Cmd struct {
 	sync.Mutex
 	*exec.Cmd
-	name string
-	arg  []string
-	done bool
+	pidfile string
+	name    string
+	arg     []string
+	done    bool
 }
 
 func NewCmd(name string, arg ...string) *Cmd {
@@ -24,11 +25,8 @@ func NewCmd(name string, arg ...string) *Cmd {
 	return cmd
 }
 
-func (c *Cmd) Done() {
-	c.Lock()
-	defer c.Unlock()
-
-	c.done = true
+func (c *Cmd) SetPidFile(pidfile string) {
+	c.pidfile = pidfile
 }
 
 func (c *Cmd) Signal(sig os.Signal) {
