@@ -8,24 +8,27 @@ import (
 	"fmt"
 )
 
+type ErrorCode int
+
 const (
-	ErrCode  = 1
-	ErrPanic = iota
+	OK ErrorCode = iota
+	ErrPanic
+	ErrFileTooLarge
 )
 
 var (
 	_ = fmt.Printf
 )
 
-type NestorError struct {
-	errcode int
+type Error struct {
+	ErrorCode ErrorCode
 }
 
-func newError(e int) *NestorError {
-	return &NestorError{e}
+func newError(e ErrorCode) *Error {
+	return &Error{e}
 }
 
 // todo
-func (e *NestorError) Error() string {
+func (e *Error) Error() string {
 	return ""
 }

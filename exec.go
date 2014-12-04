@@ -14,6 +14,10 @@ import (
 	"syscall"
 )
 
+const (
+	MaxPidFileSize = 8
+)
+
 type Cmd struct {
 	sync.Mutex
 	*exec.Cmd
@@ -86,9 +90,23 @@ func (c *Cmd) TermRun() error {
 	return c.Cmd.Wait()
 }
 
-func ReadPid(path string) (int, error) {
+func ReadPid(filename string) (int, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
 
-	buf, err := ioutil.ReadFile(path)
+	if fi, err := f.Stat(); err != nil {
+		return 0, err
+	} else {
+		if size := fi.Size(); size >= MaxPidFileSize {
+			return 0, newError(ErrFileTooLarge)
+		}
+	}
+
+	// actuall read the file
+	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return 0, err
 	}
