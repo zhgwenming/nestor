@@ -5,6 +5,7 @@
 package nestor
 
 import (
+	"bufio"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -80,8 +81,8 @@ func (c *Cmd) Run() error {
 }
 
 func (c *Cmd) TermRun() error {
-	buf := make([]byte, 16)
-	os.Stdin.Read(buf)
+	s := bufio.NewScanner(os.Stdin)
+	s.Scan()
 
 	if err := c.Start(); err != nil {
 		return err
